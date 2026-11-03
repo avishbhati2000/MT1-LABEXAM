@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7fb">
+    <title>Employee Task Management</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #172033;
+        background: #f5f7fb;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        --muted: #65708a;
+        --line: #e4e9f2;
+        --blue: #3156d3;
+      }
+
+      * { box-sizing: border-box; }
+      body { margin: 0; min-width: 320px; }
+      button, input, select { font: inherit; }
+      button { cursor: pointer; }
+      .topbar { background: #17213a; color: white; }
+      .topbar-inner, main { width: min(1120px, calc(100% - 40px)); margin: 0 auto; }
+      .topbar-inner { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+      .brand { display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 700; letter-spacing: .01em; }
+      .brand-mark { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; background: #4769e7; font-size: 20px; }
+      .nav { display: flex; gap: 22px; color: #c4cce0; font-size: 13px; }
+      .nav a { color: inherit; text-decoration: none; }
+      .nav a:hover { color: white; }
+      main { padding: 48px 0 64px; }
+      .intro { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 28px; }
+      .eyebrow { color: var(--blue); text-transform: uppercase; letter-spacing: .13em; font-weight: 750; font-size: 11px; }
+      h1 { margin: 9px 0 8px; font-size: clamp(29px, 4vw, 38px); letter-spacing: -.04em; }
+      .intro p { color: var(--muted); margin: 0; line-height: 1.6; }
+      .refresh { border: 1px solid var(--line); background: white; color: #293650; padding: 10px 14px; border-radius: 9px; font-weight: 650; }
+      .refresh:hover { border-color: #b7c3df; }
+      .layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; align-items: start; }
+      .panel { background: white; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 5px 18px #25365c08; }
+      .panel-header { padding: 20px 22px; display: flex; justify-content: space-between; align-items: center; gap: 16px; border-bottom: 1px solid var(--line); }
+      h2 { margin: 0; font-size: 16px; letter-spacing: -.01em; }
+      .count { color: var(--muted); font-size: 12px; white-space: nowrap; }
+      .table-wrap { overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; text-align: left; }
+      th { padding: 12px 16px; color: #818ba0; background: #fafbfe; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; }
+      td { padding: 16px; border-top: 1px solid #eef1f6; font-size: 13px; vertical-align: middle; }
+      td:first-child, th:first-child { padding-left: 22px; }
+      .task-name { display: block; font-weight: 700; color: #202b42; }
+      .task-id { display: block; margin-top: 4px; color: #929bb0; font-size: 11px; }
+      .person { color: #4c5870; white-space: nowrap; }
+      .badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 30px; padding: 5px 9px; font-size: 11px; font-weight: 650; white-space: nowrap; }
+      .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+      .status-pending { color: #99620b; background: #fff5dc; }
+      .status-in-progress { color: #3156ad; background: #eaf0ff; }
+      .status-completed { color: #26734d; background: #e6f6ed; }
+      .priority-high { color: #b24040; }
+      .priority-medium { color: #a76b10; }
+      .priority-low { color: #54708e; }
+      .actions { white-space: nowrap; }
+      .action { border: 0; background: transparent; padding: 5px 7px; color: var(--blue); font-size: 12px; font-weight: 650; }
+      .action.delete { color: #b34040; }
+      .empty, .loading, .error { padding: 34px 20px; color: var(--muted); text-align: center; font-size: 13px; }
+      .error { color: #a82f36; background: #fff6f5; border-radius: 8px; margin: 14px; padding: 12px; text-align: left; }
+      .form-panel { padding: 22px; }
+      .form-panel h2 { margin-bottom: 6px; }
+      .form-hint { color: var(--muted); font-size: 12px; line-height: 1.5; margin: 0 0 20px; }
+      .field { display: grid; gap: 7px; margin: 14px 0; }
+      label { font-size: 12px; color: #46516a; font-weight: 650; }
+      input, select { width: 100%; min-height: 40px; border: 1px solid #dfe4ed; border-radius: 8px; padding: 9px 11px; color: #202b42; background: white; outline: none; }
+      input:focus, select:focus { border-color: #7288e3; box-shadow: 0 0 0 3px #3156d318; }
+      input:disabled { background: #f4f6fa; color: #7a849a; }
+      .form-actions { display: flex; gap: 9px; margin-top: 20px; }
+      .primary, .secondary { min-height: 40px; border-radius: 8px; padding: 9px 14px; font-weight: 700; font-size: 12px; }
+      .primary { flex: 1; background: var(--blue); border: 1px solid var(--blue); color: white; }
+      .primary:hover { background: #2648bb; }
+      .secondary { border: 1px solid var(--line); background: white; color: #46516a; }
+      .notice { min-height: 20px; margin-top: 12px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+      .notice.success { color: #26734d; }
+      .notice.error-text { color: #a82f36; }
+      footer { color: #8992a5; text-align: center; font-size: 11px; padding-top: 26px; }
+      @media (max-width: 820px) {
+        .layout { grid-template-columns: 1fr; }
+        .form-panel { order: -1; }
+      }
+      @media (max-width: 580px) {
+        .topbar-inner, main { width: min(100% - 28px, 1120px); }
+        .nav { gap: 13px; font-size: 12px; }
+        .topbar-inner { min-height: 66px; }
+        main { padding-top: 34px; }
+        .intro { align-items: flex-start; }
+        .intro p { max-width: 310px; }
+        .refresh { font-size: 0; }
+        .refresh::after { content: "Refresh"; font-size: 12px; }
+        td, th { padding-left: 12px; padding-right: 12px; }
+        td:first-child, th:first-child { padding-left: 14px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">✓</span> Teamboard</div>
+        <nav class="nav" aria-label="Main navigation">
+          <a href="/">Welcome</a>
+          <a href="/about">About</a>
+          <a href="/tasks">HTTP tasks</a>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <section class="intro">
+        <div>
+          <div class="eyebrow">Workspace overview</div>
+          <h1>Employee tasks</h1>
+          <p>Assign work, keep track of progress, and make sure nothing gets missed.</p>
+        </div>
+        <button class="refresh" id="refresh" type="button" aria-label="Refresh tasks">↻ &nbsp; Refresh</button>
+      </section>
+      <div class="layout">
+        <section class="panel" aria-labelledby="task-list-title">
+          <div class="panel-header">
+            <h2 id="task-list-title">All tasks</h2>
+            <span class="count" id="task-count">Loading…</span>
+          </div>
+          <div id="task-list" class="loading" role="status">Connecting to the task API…</div>
+        </section>
+        <aside class="panel form-panel">
+          <h2 id="form-title">Create a task</h2>
+          <p class="form-hint">Add a task to the team queue. All fields are required.</p>
+          <form id="task-form">
+            <div class="field">
+              <label for="id">Task ID</label>
+              <input id="id" name="id" type="number" min="1" step="1" required>
+            </div>
+            <div class="field">
+              <label for="taskName">Task name</label>
+              <input id="taskName" name="taskName" type="text" maxlength="120" placeholder="e.g. Review deployment plan" required>
+            </div>
+            <div class="field">
+              <label for="assignedTo">Assigned to</label>
+              <input id="assignedTo" name="assignedTo" type="text" maxlength="80" placeholder="Employee name" required>
+            </div>
+            <div class="field">
+              <label for="status">Status</label>
+              <select id="status" name="status" required>
+                <option>Pending</option>
+                <option>In Progress</option>
+                <option>Completed</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="priority">Priority</label>
+              <select id="priority" name="priority" required>
+                <option>Low</option>
+                <option selected>Medium</option>
+                <option>High</option>
+              </select>
+            </div>
+            <div class="form-actions">
+              <button class="primary" id="submit-task" type="submit">Add task</button>
+              <button class="secondary" id="cancel-edit" type="button" hidden>Cancel</button>
+            </div>
+            <div class="notice" id="notice" role="status" aria-live="polite"></div>
+          </form>
+        </aside>
+      </div>
+      <footer>Employee Task Management · Node.js HTTP, FS &amp; Express</footer>
+    </main>
+    <script>
+      const API_URL = 'http://localhost:4000';
+      const taskList = document.querySelector('#task-list');
+      const taskCount = document.querySelector('#task-count');
+      const taskForm = document.querySelector('#task-form');
+      const notice = document.querySelector('#notice');
+      let editingTaskId = null;
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, (character) => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;',
+        })[character]);
+      }
+
+      function className(value) {
+        return String(value).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      }
+
+      function showNotice(message, kind = '') {
+        notice.textContent = message;
+        notice.className = `notice ${kind}`;
+      }
+
+      async function apiRequest(path, options = {}) {
+        const response = await fetch(`${API_URL}${path}`, {
+          ...options,
+          headers: { 'Content-Type': 'application/json', ...options.headers },
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || `Request failed (${response.status})`);
+        return data;
+      }
+
+      function renderTasks(tasks) {
+        taskCount.textContent = `${tasks.length} ${tasks.length === 1 ? 'task' : 'tasks'}`;
+        if (!tasks.length) {
+          taskList.className = 'empty';
+          taskList.textContent = 'No tasks yet. Create the first one using the form.';
+          return;
+        }
+
+        taskList.className = 'table-wrap';
+        taskList.innerHTML = `
+          <table>
+            <thead><tr><th>Task</th><th>Assigned to</th><th>Status</th><th>Priority</th><th>Actions</th></tr></thead>
+            <tbody>${tasks.map((task) => `
+              <tr>
+                <td><span class="task-name">${escapeHtml(task.taskName)}</span><span class="task-id">#${escapeHtml(task.id)}</span></td>
+                <td class="person">${escapeHtml(task.assignedTo)}</td>
+                <td><span class="badge status-${className(task.status)}">${escapeHtml(task.status)}</span></td>
+                <td><span class="priority-${className(task.priority)}">${escapeHtml(task.priority)}</span></td>
+                <td class="actions">
+                  <button class="action" type="button" data-action="edit" data-id="${escapeHtml(task.id)}">Edit</button>
+                  <button class="action delete" type="button" data-action="delete" data-id="${escapeHtml(task.id)}">Delete</button>
+                </td>
+              </tr>`).join('')}</tbody>
+          </table>`;
+      }
+
+      async function loadTasks() {
+        taskList.className = 'loading';
+        taskList.textContent = 'Loading tasks…';
+        try {
+          renderTasks(await apiRequest('/tasks'));
+        } catch (error) {
+          taskCount.textContent = 'Unavailable';
+          taskList.className = 'error';
+          taskList.textContent = `${error.message}. Make sure the Express API is running on port 4000.`;
+        }
+      }
+
+      function resetForm() {
+        editingTaskId = null;
+        taskForm.reset();
+        document.querySelector('#id').disabled = false;
+        document.querySelector('#form-title').textContent = 'Create a task';
+        document.querySelector('#submit-task').textContent = 'Add task';
+        document.querySelector('#cancel-edit').hidden = true;
+        showNotice('');
+      }
+
+      taskForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const values = Object.fromEntries(new FormData(taskForm));
+        const payload = {
+          taskName: values.taskName.trim(),
+          assignedTo: values.assignedTo.trim(),
+          status: values.status,
+          priority: values.priority,
+        };
+        const isEditing = editingTaskId !== null;
+        if (!isEditing) payload.id = Number(values.id);
+
+        try {
+          const result = await apiRequest(
+            isEditing ? `/tasks/${editingTaskId}` : '/tasks',
+            { method: isEditing ? 'PUT' : 'POST', body: JSON.stringify(payload) },
+          );
+          resetForm();
+          showNotice(result.message, 'success');
+          await loadTasks();
+        } catch (error) {
+          showNotice(error.message, 'error-text');
+        }
+      });
+
+      taskList.addEventListener('click', async (event) => {
+        const button = event.target.closest('button[data-action]');
+        if (!button) return;
+        const taskId = button.dataset.id;
+        try {
+          if (button.dataset.action === 'edit') {
+            const task = await apiRequest(`/tasks/${taskId}`);
+            editingTaskId = task.id;
+            document.querySelector('#id').value = task.id;
+            document.querySelector('#id').disabled = true;
+            document.querySelector('#taskName').value = task.taskName;
+            document.querySelector('#assignedTo').value = task.assignedTo;
+            document.querySelector('#status').value = task.status;
+            document.querySelector('#priority').value = task.priority;
+            document.querySelector('#form-title').textContent = `Edit task #${task.id}`;
+            document.querySelector('#submit-task').textContent = 'Save changes';
+            document.querySelector('#cancel-edit').hidden = false;
+            showNotice('Update the details and save your changes.');
+            document.querySelector('#taskName').focus();
+            return;
+          }
+
+          if (!window.confirm(`Delete task #${taskId}?`)) return;
+          const result = await apiRequest(`/tasks/${taskId}`, { method: 'DELETE' });
+          if (editingTaskId === result.task.id) resetForm();
+          await loadTasks();
+          showNotice(result.message, 'success');
+        } catch (error) {
+          showNotice(error.message, 'error-text');
+        }
+      });
+
+      document.querySelector('#cancel-edit').addEventListener('click', resetForm);
+      document.querySelector('#refresh').addEventListener('click', loadTasks);
+      loadTasks();
+    </script>
+  </body>
+</html>

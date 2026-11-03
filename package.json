@@ -1,0 +1,18 @@
+{
+  "name": "mt1-labexam",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Employee Task Management application using Node.js HTTP, FS, and Express",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start:http": "node httpServer.js",
+    "start:api": "node expressApp.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
